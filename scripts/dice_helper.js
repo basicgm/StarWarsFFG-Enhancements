@@ -26,6 +26,9 @@ export function dice_helper() {
                 await dice_helper_clicked(messageData);
             });
             if (game.user.isGM && app.roll && (messageData.message.content.search('Initiative') === -1 || messageData.message.content.search('Help spending results') === -1 || messageData.message.content.search('for spending results') === -1)) {
+                let social_skills = [
+                    game.i18n.localize('SWFFG.SkillsNameDeception')
+                ];
                 let combat_skills = [
                     /* melee animations */
                     game.i18n.localize('SWFFG.SkillsNameBrawl'),
@@ -47,7 +50,7 @@ export function dice_helper() {
                         'despair': app.roll.ffg.despair,
                     };
                     if (data['advantage'] > 0 || data['triumph'] > 0 || data['threat'] > 0 || data['despair'] > 0) {
-                       log('dice_helper', 'Die roll had relevant results, generating new message');
+                        log('dice_helper', 'Die roll had relevant results, generating new message');
                         var msg = {
                             type: CONST.CHAT_MESSAGE_TYPES.OTHER,
                             'content': '<button class="effg-die-result" ' +
@@ -61,6 +64,25 @@ export function dice_helper() {
                         ChatMessage.create(msg);
                     } else {
                         log('dice_helper', 'Die roll didn\'t have relevant results, skipping');
+                    }
+                } else if (social_skills.indexOf(skill)) {
+                    let rollData = app.roll.ffg;
+                    let resultSum = Object.values(rollData).reduce((sum, val) => sum + val, 0);
+                    if (resultSum > 0) {
+                        log('dice_helper', 'Die roll had relevant results, generating new message');
+                        let msg = {
+                            type: CONST.CHAT_MESSAGE_TYPES.OTHER,
+                            content: `<button class="effg-die-result"
+                                data-s="${data.success}"
+                                data-ad="${data.advantage}"
+                                data-tr="${data.triumph}"
+                                data-th="${data.threat}"
+                                data-de="${data.despair}">
+                              Help spending results!
+                              </button>`,
+                        };
+                        log('dice_helper', 'New message content: ' + msg['content']);
+                        ChatMessage.create(msg);
                     }
                 } else {
                     log('dice_helper', 'Detected non-combat die roll, skipping');
